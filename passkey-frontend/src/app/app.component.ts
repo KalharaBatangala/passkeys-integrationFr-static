@@ -9,26 +9,33 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 
 // Modal Component for Registration Success
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Inject } from '@angular/core';
+
 @Component({
-  selector: 'app-registration-success-dialog',
+  selector: 'app-success-dialog',
   template: `
-    <h1 mat-dialog-title>Registration Successful</h1>
+    <h1 mat-dialog-title>{{ data.title }}</h1>
     <div mat-dialog-content>
-      <p>Your registration has been completed successfully.</p>
+      <p>{{ data.message }}</p>
     </div>
     <div mat-dialog-actions>
       <button mat-button (click)="close()">Close</button>
     </div>
   `,
 })
-export class RegistrationSuccessDialogComponent {
-  constructor(private dialog: MatDialog) {}
+export class SuccessDialogComponent {
+  constructor(
+    private dialog: MatDialog,
+    @Inject(MAT_DIALOG_DATA) public data: { title: string; message: string }
+  ) {}
 
   close() {
-    // Close the dialog programmatically
     this.dialog.closeAll();
   }
 }
+
+
 
 // Main App Component
 @Component({
@@ -72,6 +79,7 @@ export class RegistrationSuccessDialogComponent {
       .success-message {
         color: green;
         margin-top: 20px;
+        height: 100px;
       }
       .error-message {
         color: red;
@@ -101,10 +109,13 @@ export class AppComponent {
       const response = await firstValueFrom(this.http.post<boolean>('/register/finish', fidoData));
       console.log('Registration finish response:', response);
   
-      if (response) {
-        // Open success dialog
-        this.dialog.open(RegistrationSuccessDialogComponent);
-      }
+         // Open success dialog
+         this.dialog.open(SuccessDialogComponent, {
+          data: {
+            title: 'register Successful',
+            message: 'You have registered in successfully!',
+          },
+        });
     } catch (error) {
       console.error('Registration failed:', error);
       this.errorMessage = 'Registration failed. Please try again.';
@@ -137,17 +148,36 @@ export class AppComponent {
 
   async loginStart() {
     try {
-        const response = await firstValueFrom(
-            this.http.post('/login/start', { username: this.username })
-        );
-        const options = response as PublicKeyCredentialRequestOptions;
-        const assertion = await fido2Get(options, this.username);
-
-        await firstValueFrom(this.http.post('/login/finish', assertion));
-        console.log('Login successful');
+      console.log('Starting login for username:', this.username);
+      const response = await firstValueFrom(
+        this.http.post('/login/start', { username: this.username })
+      );
+      console.log('Received login challenge response:', response);
+  
+      const options = response as PublicKeyCredentialRequestOptions;
+      console.log('Login options:', options);
+  
+      const assertion = await fido2Get(options, this.username);
+      console.log('Assertion data for login:', assertion);
+  
+      const loginResponse = await firstValueFrom(this.http.post('/login/finish', assertion));
+      console.log('Login successful:', loginResponse);
+  
+      // Open success dialog
+      this.dialog.open(SuccessDialogComponent, {
+        data: {
+          title: 'Login Successful',
+          message: 'You have logged in successfully!',
+        },
+      });
+  
+      this.loginSuccess = true;
+      this.errorMessage = null;
     } catch (error) {
-        console.error('Login failed', error);
+      console.error('Login failed:', error);
+      this.errorMessage = 'Login failed. Please try again.';
     }
-}
+  }
+  
   
 }
