@@ -23,6 +23,10 @@ import { Inject } from '@angular/core';
       <button mat-button (click)="close()">Close</button>
     </div>
   `,
+  styles: [
+    `
+    `,
+  ],
 })
 export class SuccessDialogComponent {
   constructor(
@@ -79,7 +83,6 @@ export class SuccessDialogComponent {
       .success-message {
         color: green;
         margin-top: 20px;
-        height: 100px;
       }
       .error-message {
         color: red;
