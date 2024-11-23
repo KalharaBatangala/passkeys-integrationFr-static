@@ -1,0 +1,99 @@
+/* You can add global styles to this file, and also import other style files */
+/* styles.css */
+
+/* General Reset */
+body {
+  margin: 0;
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+/* Center content */
+div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+}
+
+/* Header Style */
+h1 {
+  font-size: 2rem;
+  color: #4a4a8a;
+  margin-bottom: 1rem;
+}
+
+/* Input Field */
+input {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 250px;
+  margin-bottom: 1rem;
+  outline: none;
+}
+
+input:focus {
+  border-color: #4a4a8a;
+}
+
+/* Buttons */
+button {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  margin: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button {
+  background-color: #ff6f61;
+  width: 150px;
+}
+
+button:last-child {
+  background-color: #1c89e8;
+
+}
+/* html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; } */
+
+
+
+::ng-deep .mat-dialog-container {
+    max-width: 400px;  /* Adjust max width of the modal */
+    padding: 20px;  /* Reduce padding inside the modal */
+  }
+  
+  .mat-dialog-title {
+    font-size: 1.5rem;  /* Adjust the title font size */
+    color: #4a148c;  /* Choose your color */
+  }
+  
+  .mat-dialog-content {
+    font-size: 1rem;  /* Adjust content font size */
+  }
+  
+  button.mat-button {
+    background-color: #4a148c;  /* Button background color */
+    color: white;  /* Button text color */
+  }
+  
+  button.mat-button:hover {
+    background-color: #6a1b9a;  /* Button hover color */
+  }
+  

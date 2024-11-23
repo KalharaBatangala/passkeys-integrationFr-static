@@ -93,7 +93,7 @@ app.post('/login/start', (req, res) => {
         console.log('User not found for username:', username);
         return res.status(404).send(false);
     }
-
+    console.log(users[username]);
     let challenge = getNewChallenge();
     challenges[username] = convertChallenge(challenge);
     console.log('Generated challenge:', challenge);
@@ -103,7 +103,7 @@ app.post('/login/start', (req, res) => {
         rpId,
         allowCredentials: [{
             type: 'public-key',
-            id: users[username].credentialID,
+            id: users[username].credential.id,//change the code
             transports: ['internal'],
         }],
         userVerification: 'preferred',
@@ -114,39 +114,94 @@ app.post('/login/start', (req, res) => {
 });
 
 
-app.post('/login/finish', async (req, res) => {
-    let username = req.body.username;
-    console.log('Login finish for:', username);
 
+app.post('/login/finish', async (req, res) => {
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+
+    const username = req.body.username;
+
+    // Validate if user exists
     if (!users[username]) {
-        console.log('User not found for username:', username);
+        console.error("User not found:", username);
         return res.status(404).send(false);
     }
 
-    console.log('Received authentication response:', req.body.data);
+    // Extract authenticator data from request
+    const data = req.body.data;
+
+    // Manually build the authenticator object
+    const authenticator = {
+        id: data.id, // This is the credential ID from the client
+        counter: 0, // Default to 0 if no counter is provided (adjust as per your implementation)
+    };
+
+    console.log("Authenticator object:", authenticator);
+
     let verification;
     try {
         const user = users[username];
-        verification = await SimpleWebAuthnServer.verifyAuthenticationResponse({
-            expectedChallenge: challenges[username],
-            response: req.body.data,
-            authenticator: user,
-            expectedRPID: rpId,
-            expectedOrigin,
-            requireUserVerification: false
-        });
+        console.log("User credentials:", JSON.stringify(user, null, 2));
 
-        console.log('Verification result:', verification);
+        verification = await SimpleWebAuthnServer.verifyAuthenticationResponse({
+            expectedChallenge: challenges[username], // Challenge sent during the initial request
+            response: data, // Directly pass the data object as received
+            authenticator: {
+                credentialPublicKey: user.credential.publicKey.buffer, // User's public key buffer
+                credentialID: base64url.toBuffer(authenticator.id), // Convert the credential ID to buffer
+                counter: authenticator.counter, // Provide the counter value
+            },
+            expectedRPID: rpId, // Your relying party ID
+            expectedOrigin, // Your origin (e.g., http://localhost:3000)
+            requireUserVerification: false, // Adjust based on your verification needs
+        });
     } catch (error) {
-        console.error('Verification error:', error);
+        console.error("Verification failed:", error);
         return res.status(400).send({ error: error.message });
     }
 
     const { verified } = verification;
-    console.log('Login verified:', verified);
 
-    return res.status(200).send({ res: verified });
+    console.log("Verification result:", verified);
+
+    return res.status(200).send({
+        res: verified,
+    });
 });
+
+
+
+// app.post('/login/finish', async (req, res) => {
+//     console.log("reqf",req.body);
+//     let username = req.body.username;
+//     if (!users[username]) {
+//        return res.status(404).send(false);
+//     }
+//     const authenticator = req.body.authenticator;
+//     console.log('Authenticator', authenticator);
+//     let verification;
+//     try {
+//         const user = users[username];
+//         verification = await SimpleWebAuthnServer.verifyAuthenticationResponse({
+//             expectedChallenge: challenges[username],
+//             response: req.body.data,
+//             authenticator: {
+//                 credentialPublicKey: user.credential.publicKey.buffer,
+//                 credentialID: base64url.toBuffer(authenticator.credential.id),
+//                 counter: authenticator.counter,   
+//             },
+//             expectedRPID: rpId,
+//             expectedOrigin,
+//             requireUserVerification: false
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(400).send({error: error.message});
+//     }
+//     const {verified} = verification;
+//     return res.status(200).send({
+//         res: verified
+//     });
+// });
 
 
 function getNewChallenge() {
